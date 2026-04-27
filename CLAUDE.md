@@ -147,6 +147,98 @@ Raw audit docs: `SECURITY-AUDIT1.md` (19-finding dual-agent audit), `findings.md
 - [ ] No image cropping/resizing on upload
 - [ ] Automate the platform → client export pipeline
 - [ ] Test full end-to-end deployment on a real client's Cloudflare account
+- [ ] **Booking form** — removed from v1 (no Worker handler). Restore when email sending is available. Saved code below.
+
+### Saved: Booking form code (removed 2026-04-27)
+
+Removed because the Worker has no `/api/booking` handler and Cloudflare Workers can't send email natively. Replace contact section's `renderContact()` in `app.js` when ready.
+
+**renderContact form HTML (was in app.js):**
+```javascript
+// The form that was inside renderContact():
+`<form class="contact-form" id="bookingForm">
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Name *</label>
+      <input class="form-input" name="name" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone *</label>
+      <input class="form-input" name="phone" type="tel" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input class="form-input" name="email" type="email" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Preferred Date</label>
+      <input class="form-input" name="date" type="date">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Service</label>
+    <select class="form-select" name="service" id="serviceSelect">
+      <option value="">Select a service...</option>
+      ${options}
+    </select>
+  </div>
+  <div class="form-group" id="otherServiceGroup" style="display:none">
+    <label class="form-label">What service do you need?</label>
+    <input class="form-input" name="serviceOther" placeholder="Describe the service...">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Message</label>
+    <textarea class="form-textarea" name="message" rows="4" placeholder="Additional details..."></textarea>
+  </div>
+  <button type="submit" class="btn-primary form-submit" ${E("contact.bookButtonLabel")}>${esc(c.bookButtonLabel || "Book Service")}</button>
+  <div id="formSuccess" class="form-success" style="display:none">
+    Thank you! We'll be in touch shortly.
+  </div>
+</form>`
+```
+
+**Booking form JS handler (was at bottom of initInteractivity in app.js):**
+```javascript
+// Contact form — "Other" service toggle
+const serviceSelect = document.getElementById("serviceSelect");
+const otherGroup = document.getElementById("otherServiceGroup");
+if (serviceSelect && otherGroup) {
+  serviceSelect.addEventListener("change", () => {
+    otherGroup.style.display = serviceSelect.value === "Other" ? "flex" : "none";
+  });
+}
+
+// Booking form submit — sends to Worker for email/storage
+const form = document.getElementById("bookingForm");
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    try {
+      const res = await fetch(`${API_BASE}/booking`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Submission failed");
+      form.style.display = "none";
+      document.getElementById("formSuccess").style.display = "block";
+    } catch {
+      let errEl = document.getElementById("formError");
+      if (!errEl) {
+        errEl = document.createElement("div");
+        errEl.id = "formError";
+        errEl.style.cssText = "color:#dc2626;margin-top:1rem;font-weight:600";
+        form.appendChild(errEl);
+      }
+      errEl.textContent = "Submission failed. Please call us directly.";
+    }
+  });
+}
+```
 
 ---
 

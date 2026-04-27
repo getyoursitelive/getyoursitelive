@@ -419,60 +419,28 @@ function renderEmergency(b, v) {
 function renderContact(b, v) {
   if (v.showBooking === false) return "";
   const c = b.contact || {};
-  const services = b.services || [];
-  const extras = c.extraServiceOptions || ["General Inspection", "Other"];
-
-  const options = [
-    ...services.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`),
-    ...extras.map(e => `<option value="${esc(e)}">${esc(e)}</option>`),
-  ].join("");
+  const info = b.businessInfo || {};
+  const email = info.email || "info@" + (typeof location !== "undefined" ? location.hostname : "example.com");
 
   return `
     <section id="contact" class="contact-section" data-visibility="showBooking">
       <div class="contact-inner">
-        <h2 class="section-title" ${E("contact.heading")}>${esc(c.heading || "Request Service")}</h2>
-        <p class="contact-desc" style="color:var(--text-secondary);margin-top:0.5rem" ${E("contact.description")}>${esc(c.description || "")}</p>
-        <form class="contact-form" id="bookingForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Name *</label>
-              <input class="form-input" name="name" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Phone *</label>
-              <input class="form-input" name="phone" type="tel" required>
-            </div>
+        <h2 class="section-title" ${E("contact.heading")}>${esc(c.heading || "Contact Us")}</h2>
+        <p class="contact-desc" style="color:var(--text-secondary);margin-top:0.5rem" ${E("contact.description")}>${esc(c.description || "Get in touch — we'd love to hear from you.")}</p>
+        <div class="contact-info-box">
+          <div class="contact-info-item">
+            <span class="contact-info-label">Phone</span>
+            <a href="tel:${esc(info.phone || "")}" class="contact-info-value" ${E("businessInfo.phone")}>${esc(info.phone || "")}</a>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Email *</label>
-              <input class="form-input" name="email" type="email" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Preferred Date</label>
-              <input class="form-input" name="date" type="date">
-            </div>
+          <div class="contact-info-item">
+            <span class="contact-info-label">Email</span>
+            <a href="mailto:${esc(email)}" class="contact-info-value" ${E("businessInfo.email")}>${esc(email)}</a>
           </div>
-          <div class="form-group">
-            <label class="form-label">Service</label>
-            <select class="form-select" name="service" id="serviceSelect">
-              <option value="">Select a service...</option>
-              ${options}
-            </select>
-          </div>
-          <div class="form-group" id="otherServiceGroup" style="display:none">
-            <label class="form-label">What service do you need?</label>
-            <input class="form-input" name="serviceOther" placeholder="Describe the service...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Message</label>
-            <textarea class="form-textarea" name="message" rows="4" placeholder="Additional details..."></textarea>
-          </div>
-          <button type="submit" class="btn-primary form-submit" ${E("contact.bookButtonLabel")}>${esc(c.bookButtonLabel || "Book Service")}</button>
-          <div id="formSuccess" class="form-success" style="display:none">
-            Thank you! We'll be in touch shortly.
-          </div>
-        </form>
+          ${info.address ? `<div class="contact-info-item">
+            <span class="contact-info-label">Address</span>
+            <span class="contact-info-value" ${E("businessInfo.address")}>${esc(info.address)}</span>
+          </div>` : ""}
+        </div>
       </div>
     </section>`;
 }
@@ -615,43 +583,6 @@ function initInteractions() {
     }, { passive: true });
   }
 
-  // Contact form — "Other" service toggle
-  const serviceSelect = document.getElementById("serviceSelect");
-  const otherGroup = document.getElementById("otherServiceGroup");
-  if (serviceSelect && otherGroup) {
-    serviceSelect.addEventListener("change", () => {
-      otherGroup.style.display = serviceSelect.value === "Other" ? "flex" : "none";
-    });
-  }
-
-  // Booking form submit — sends to Worker for email/storage
-  const form = document.getElementById("bookingForm");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData);
-      try {
-        const res = await fetch(`${API_BASE}/booking`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!res.ok) throw new Error("Submission failed");
-        form.style.display = "none";
-        document.getElementById("formSuccess").style.display = "block";
-      } catch {
-        let errEl = document.getElementById("formError");
-        if (!errEl) {
-          errEl = document.createElement("div");
-          errEl.id = "formError";
-          errEl.style.cssText = "color:#dc2626;margin-top:1rem;font-weight:600";
-          form.appendChild(errEl);
-        }
-        errEl.textContent = "Submission failed. Please call us directly.";
-      }
-    });
-  }
 }
 
 // ─── Utility ─────────────────────────────────────────────────────────

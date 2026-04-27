@@ -150,10 +150,8 @@
     "ctaLabel": "Call Emergency Line"
   },
   "contact": {
-    "heading": "Request Service",
-    "description": "Tell us what your vehicle needs and we'll get back to you within the hour.",
-    "bookButtonLabel": "Book Service",
-    "extraServiceOptions": ["General Inspection", "Other"]
+    "heading": "Contact Us",
+    "description": "Get in touch — we'd love to hear from you."
   },
   "footer": {
     "locationLabel": "Location",

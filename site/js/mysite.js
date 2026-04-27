@@ -334,7 +334,9 @@ function renderContactTab() {
     <h2>Contact & Hours</h2>
     ${field("Heading", "contact.heading")}
     ${field("Description", "contact.description", "textarea")}
-    ${field("Submit Button Label", "contact.bookButtonLabel")}
+    ${field("Phone", "businessInfo.phone")}
+    ${field("Email", "businessInfo.email")}
+    ${field("Address", "businessInfo.address")}
     ${field("Footer Location Label", "footer.locationLabel")}
     ${field("Footer Phone Label", "footer.phoneLabel")}
     ${field("Copyright Suffix", "footer.copyrightSuffix")}`;
