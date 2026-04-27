@@ -1,0 +1,99 @@
+/* ==================================================================
+   THEME SYSTEM — CSS Variables
+   Extracted from the main platform's globals.css
+   ================================================================== */
+
+:root {
+  /* Default to modern theme (light) to avoid dark flash before JS loads */
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-2: #F1F1EC;
+  --surface-elevated: #FFFFFF;
+  --text: #0B0D0C;
+  --muted: #5A5E5B;
+  --text-secondary: #3F4341;
+  --border: #E4E1D9;
+  --accent: #0A5D56;
+  --accent-ink: #FAFAF7;
+  --accent-soft: color-mix(in srgb, #0A5D56 10%, transparent);
+  --accent-glow: color-mix(in srgb, #0A5D56 20%, transparent);
+  --shadow-color: 200 10% 15%;
+  --shadow-strength: 0.08;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+/* ----- INDUSTRIAL ------------------------------------------------- */
+[data-theme="industrial"] {
+  --bg: #1a1a1a;
+  --surface: #242424;
+  --surface-2: #2d2d2d;
+  --text: #f8f8f8;
+  --muted: #c8c8c8;
+  --border: #444444;
+  --accent: #ff6b00;
+  --accent-ink: #0f0f0f;
+  --accent-soft: color-mix(in srgb, #ff6b00 15%, transparent);
+  --accent-glow: color-mix(in srgb, #ff6b00 25%, transparent);
+  --surface-elevated: #2d2d2d;
+  --text-secondary: #c8c8c8;
+  --shadow-color: 0 0% 0%;
+  --shadow-strength: 0.4;
+}
+
+/* ----- MODERN ----------------------------------------------------- */
+[data-theme="modern"] {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-2: #F1F1EC;
+  --surface-elevated: #FFFFFF;
+  --text: #0B0D0C;
+  --muted: #5A5E5B;
+  --text-secondary: #3F4341;
+  --border: #E4E1D9;
+  --accent: #0A5D56;
+  --accent-ink: #FAFAF7;
+  --accent-soft: color-mix(in srgb, #0A5D56 10%, transparent);
+  --accent-glow: color-mix(in srgb, #0A5D56 20%, transparent);
+  --shadow-color: 200 10% 15%;
+  --shadow-strength: 0.08;
+}
+
+/* ----- LUXURY ----------------------------------------------------- */
+[data-theme="luxury"] {
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface-2: #1f1f1f;
+  --text: #f5f5dc;
+  --muted: #d9d6c3;
+  --border: #3e3217;
+  --accent: #d4af37;
+  --accent-ink: #0a0a0a;
+  --accent-soft: color-mix(in srgb, #d4af37 15%, transparent);
+  --accent-glow: color-mix(in srgb, #d4af37 25%, transparent);
+  --surface-elevated: #1f1f1f;
+  --text-secondary: #d9d6c3;
+  --shadow-color: 0 0% 0%;
+  --shadow-strength: 0.5;
+}
+
+/* ----- FRIENDLY --------------------------------------------------- */
+[data-theme="friendly"] {
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --surface-2: #f3eee8;
+  --text: #283136;
+  --muted: #5e6972;
+  --border: #d9d4cb;
+  --accent: #e07a5f;
+  --accent-ink: #ffffff;
+  --accent-soft: color-mix(in srgb, #e07a5f 15%, transparent);
+  --accent-glow: color-mix(in srgb, #e07a5f 25%, transparent);
+  --surface-elevated: #ffffff;
+  --text-secondary: #5e6972;
+  --shadow-color: 25 15% 30%;
+  --shadow-strength: 0.1;
+}

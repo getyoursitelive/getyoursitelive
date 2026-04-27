@@ -1,0 +1,17 @@
+name = "site-api"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+
+# KV namespace for content storage
+[[kv_namespaces]]
+binding = "CONTENT"
+id = "fa89f89211294ba191c922d863bd7bee"
+
+# R2 bucket for image uploads
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "site-uploads"
+
+[vars]
+# Set via `wrangler secret put PASSWORD`
+# PASSWORD = ""
