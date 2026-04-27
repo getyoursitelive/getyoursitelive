@@ -477,6 +477,45 @@ function formatHoursLong(schedule) {
   return ranges;
 }
 
+function getOpenStatus(schedule) {
+  if (!schedule) return null;
+  var DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  var DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  var now = new Date();
+  var todayKey = DAY_KEYS[now.getDay()];
+  var today = schedule[todayKey];
+  var nowMins = now.getHours() * 60 + now.getMinutes();
+
+  function fmt(t) {
+    var parts = t.split(":").map(Number);
+    var h = parts[0], m = parts[1];
+    var suffix = h >= 12 ? "PM" : "AM";
+    var hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return m === 0 ? hour + " " + suffix : hour + ":" + String(m).padStart(2, "0") + " " + suffix;
+  }
+
+  if (today) {
+    var openMins = today.open.split(":").map(Number);
+    var closeMins = today.close.split(":").map(Number);
+    var oM = openMins[0] * 60 + openMins[1];
+    var cM = closeMins[0] * 60 + closeMins[1];
+    var spans = cM <= oM;
+    var isOpen = spans ? (nowMins >= oM || nowMins < cM) : (nowMins >= oM && nowMins < cM);
+    if (isOpen) return { isOpen: true, label: "Open now", detail: "Closes at " + fmt(today.close) };
+    if (!spans && nowMins < oM) return { isOpen: false, label: "Closed", detail: "Opens at " + fmt(today.open) };
+  }
+
+  for (var offset = 1; offset <= 7; offset++) {
+    var nextIdx = (now.getDay() + offset) % 7;
+    var nextDay = schedule[DAY_KEYS[nextIdx]];
+    if (nextDay) {
+      var dayLabel = offset === 1 ? "tomorrow" : DAY_NAMES[nextIdx];
+      return { isOpen: false, label: "Closed", detail: "Opens " + fmt(nextDay.open) + " " + dayLabel };
+    }
+  }
+  return { isOpen: false, label: "Closed", detail: "Hours unavailable" };
+}
+
 function renderContact(b, v) {
   if (v.showBooking === false) return "";
   const c = b.contact || {};
@@ -492,9 +531,11 @@ function renderContact(b, v) {
   let hoursHtml = "";
   if (v.showHours !== false && b.hoursSchedule) {
     const ranges = formatHoursLong(b.hoursSchedule);
+    const status = getOpenStatus(b.hoursSchedule);
+    const statusHtml = status ? `<span class="open-status ${status.isOpen ? "open-status--open" : "open-status--closed"}"><span class="open-status-dot"></span><span class="open-status-label">${esc(status.label)}</span><span class="open-status-detail">&middot; ${esc(status.detail)}</span></span>` : "";
     hoursHtml = `
       <div class="hours-list" data-visibility="showHours">
-        <h3 class="hours-heading">Hours</h3>
+        <div class="hours-header"><h3 class="hours-heading">Hours</h3>${statusHtml}</div>
         ${ranges.map(r => `<div class="hours-row"><span class="hours-day">${esc(r.label)}</span><span class="hours-time">${esc(r.hours)}</span></div>`).join("")}
       </div>`;
   }
@@ -630,6 +671,21 @@ function initInteractions() {
       if (!wasOpen) item.classList.add("open");
     });
   });
+
+  // Open/Closed status — refresh every 60 seconds
+  function refreshOpenStatus() {
+    if (!BUSINESS.hoursSchedule) return;
+    var el = document.querySelector(".open-status");
+    if (!el) return;
+    var status = getOpenStatus(BUSINESS.hoursSchedule);
+    if (!status) return;
+    el.className = "open-status " + (status.isOpen ? "open-status--open" : "open-status--closed");
+    var lbl = el.querySelector(".open-status-label");
+    var det = el.querySelector(".open-status-detail");
+    if (lbl) lbl.textContent = status.label;
+    if (det) det.innerHTML = "&middot; " + esc(status.detail);
+  }
+  setInterval(refreshOpenStatus, 60000);
 
   // Stats counter animation (skip in edit mode — animation overwrites contenteditable)
   const statsSection = document.getElementById("stats");

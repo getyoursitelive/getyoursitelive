@@ -939,7 +939,17 @@ a.contact-info-value:hover { text-decoration: underline; }
 .contact-map { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); height: 100%; min-height: 18rem; }
 .contact-map-iframe { width: 100%; height: 100%; min-height: 18rem; border: 0; display: block; }
 .hours-list { }
-.hours-heading { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+.hours-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.hours-heading { font-size: 1rem; font-weight: 600; margin: 0; }
+.open-status { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; font-weight: 500; }
+.open-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; }
+.open-status-label { font-weight: 600; }
+.open-status-detail { color: var(--text-secondary); font-weight: 400; }
+.open-status--open .open-status-label { color: #10b981; }
+.open-status--open .open-status-dot { background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); animation: openPulse 2.2s ease-in-out infinite; }
+.open-status--closed .open-status-label { color: #ef4444; }
+.open-status--closed .open-status-dot { background: #ef4444; }
+@keyframes openPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
 .hours-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 .hours-row:last-child { border-bottom: none; }
 .hours-day { font-weight: 500; }
