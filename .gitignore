@@ -3,6 +3,7 @@ node_modules/
 
 # Cloudflare
 .wrangler/
+**/.wrangler/
 
 # OS
 .DS_Store

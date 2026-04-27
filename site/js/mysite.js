@@ -560,7 +560,7 @@ function setNestedValue(obj, path, value) {
   const target = keys.reduce((o, k) => { if (!o[k]) o[k] = {}; return o[k]; }, obj);
   target[last] = value;
 }
-function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function esc(s) { return s == null ? "" : String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 
 // Boot
 window.initAdmin = initAdmin;

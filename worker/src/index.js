@@ -65,20 +65,24 @@ function errorResponse(message, status = 400, request = null, env = null) {
 }
 
 // ─── Timing-safe comparison ─────────────────────────────────────────
+// HMAC both inputs so comparison is always fixed-length (32 bytes),
+// eliminating the length-leak side channel of naive char-by-char XOR.
 
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) {
-    // Compare against self to burn same time, then return false
-    const dummy = a;
-    let result = 0;
-    for (let i = 0; i < dummy.length; i++) {
-      result |= dummy.charCodeAt(i) ^ dummy.charCodeAt(i);
-    }
-    return false;
-  }
+async function timingSafeEqual(a, b) {
+  const encoder = new TextEncoder();
+  const keyData = crypto.getRandomValues(new Uint8Array(32));
+  const key = await crypto.subtle.importKey(
+    "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const [sigA, sigB] = await Promise.all([
+    crypto.subtle.sign("HMAC", key, encoder.encode(String(a))),
+    crypto.subtle.sign("HMAC", key, encoder.encode(String(b))),
+  ]);
+  const viewA = new Uint8Array(sigA);
+  const viewB = new Uint8Array(sigB);
   let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  for (let i = 0; i < viewA.length; i++) {
+    result |= viewA[i] ^ viewB[i];
   }
   return result === 0;
 }
@@ -86,9 +90,7 @@ function timingSafeEqual(a, b) {
 // ─── Rate limiting (KV-backed) ──────────────────────────────────────
 
 function getClientIP(request) {
-  return request.headers.get("CF-Connecting-IP") ||
-         request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
-         "unknown";
+  return request.headers.get("CF-Connecting-IP") || "unknown";
 }
 
 async function checkRateLimit(ip, env) {
@@ -137,12 +139,19 @@ async function clearRateLimit(ip, env) {
 
 // ─── Auth ───────────────────────────────────────────────────────────
 
+// TOKEN_SECRET env var is used for HMAC signing. Falls back to PASSWORD
+// for backwards compat, but production SHOULD set a separate TOKEN_SECRET.
+function getSigningKey(env) {
+  return env.TOKEN_SECRET || env.PASSWORD;
+}
+
 async function createToken(password, env) {
   const now = Date.now();
   const data = `${password}:${now}`;
   const encoder = new TextEncoder();
+  const secret = getSigningKey(env);
   const key = await crypto.subtle.importKey(
-    "raw", encoder.encode(env.PASSWORD), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
   );
   const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(data));
   const hex = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -157,14 +166,15 @@ async function verifyToken(token, env) {
   const timestamp = parseInt(timestampStr, 10);
   if (isNaN(timestamp) || Date.now() - timestamp > TOKEN_TTL) return false;
 
+  const secret = getSigningKey(env);
   const data = `${env.PASSWORD}:${timestamp}`;
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
-    "raw", encoder.encode(env.PASSWORD), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
   );
   const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(data));
   const expected = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
-  return timingSafeEqual(hex, expected);
+  return await timingSafeEqual(hex, expected);
 }
 
 function getToken(request) {
@@ -208,7 +218,24 @@ export default {
       const authErr = await requireAuth(request, env);
       if (authErr) return authErr;
 
-      const body = await request.json();
+      // Reject payloads > 512KB to prevent KV abuse
+      const contentLength = parseInt(request.headers.get("Content-Length") || "0", 10);
+      if (contentLength > 512 * 1024) {
+        return errorResponse("Payload too large. Maximum 512KB.", 413, request, env);
+      }
+
+      const rawBody = await request.text();
+      if (rawBody.length > 512 * 1024) {
+        return errorResponse("Payload too large. Maximum 512KB.", 413, request, env);
+      }
+
+      let body;
+      try {
+        body = JSON.parse(rawBody);
+      } catch {
+        return errorResponse("Invalid JSON", 400, request, env);
+      }
+
       await env.CONTENT.put(CONTENT_KEY, JSON.stringify(body));
       return json({ ok: true }, 200, request, env);
     }
@@ -236,7 +263,7 @@ export default {
         return errorResponse("Invalid request", 400, request, env);
       }
 
-      if (!password || !timingSafeEqual(password, env.PASSWORD)) {
+      if (!password || !await timingSafeEqual(password, env.PASSWORD)) {
         await recordFailedAttempt(ip, env);
         // Generic message — don't reveal whether password field was missing vs wrong
         return errorResponse("Invalid password", 401, request, env);
@@ -266,9 +293,9 @@ export default {
       }
 
       // Validate type
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
       if (!allowedTypes.includes(file.type)) {
-        return errorResponse("Invalid file type. Allowed: JPG, PNG, WebP, GIF, SVG", 400, request, env);
+        return errorResponse("Invalid file type. Allowed: JPG, PNG, WebP, GIF", 400, request, env);
       }
 
       // 5MB limit
