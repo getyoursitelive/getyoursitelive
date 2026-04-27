@@ -29,8 +29,9 @@ Hosted on the client's own Cloudflare account (Pages + Worker + KV + R2).
 | 2026-04-27 | Dual-agent Red/Blue team | 19 findings (1 CRITICAL, 5 HIGH, 7 MEDIUM, 6 LOW) | `SECURITY-AUDIT1.md` |
 | 2026-04-27 | Red Team vs Expert simulation (5 rounds) | 3 actionable + 2 non-issues | `findings.md` |
 | 2026-04-27 | Follow-up review (token replay, KV isolation) | 2 findings (both MEDIUM) | This document |
+| 2026-04-27 | Security Fortress simulation (3 rounds, 9 attacks) | 1 new fix (login payload limit), 1 status correction (#19) | This document |
 
-**All findings have been resolved.** See status table below.
+**All actionable findings have been resolved.** One informational item remains (booking form has no backend handler — see #19). See status table below.
 
 ---
 
@@ -58,7 +59,7 @@ Hosted on the client's own Cloudflare account (Pages + Worker + KV + R2).
 | 16 | LOW | Content-Length header spoofable on first size check | Second check on actual body length is the real enforcement | NOT VULNERABLE |
 | 17 | LOW | `esc()` doesn't sanitize `javascript:` in href | All href values use fixed protocols (`tel:`, `mailto:`, `https://`) | NOT VULNERABLE |
 | 18 | LOW | Login error reflected server error verbatim | Generic "Invalid password" message; rate-limit message kept | FIXED |
-| 19 | LOW | Booking form silently discarded submissions | Now POSTs to `/api/booking` with error handling | FIXED |
+| 19 | LOW | Booking form silently discarded submissions | Client-side POSTs to `/api/booking` with error handling, but Worker has NO handler — returns 404, caught by error UI showing "Please call us directly." | OPEN — needs Worker handler or form removal |
 
 ### From the Red Team vs Expert simulation (findings.md)
 
@@ -76,6 +77,24 @@ Hosted on the client's own Cloudflare account (Pages + Worker + KV + R2).
 |---|----------|---------|-----|--------|
 | FU-1 | MEDIUM | Token replay after password change — no UI to revoke | "Sign Out All Devices" button in admin panel | FIXED |
 | FU-2 | MEDIUM | Rate-limit KV records shared namespace with content | Dedicated `RATE_LIMIT` KV binding (same as RT-3) | FIXED |
+
+### From the Security Fortress simulation (9-attack, 3-round)
+
+Three hackers attempted 9 attack vectors across 3 rounds. Final score: Attackers 3.5/9 vs Defenders 5.5/9.
+
+| # | Attack | Result | Action |
+|---|--------|--------|--------|
+| SF-1 | Token theft via XSS | DEFLECTED | CSP `script-src 'self'` + `esc()` output escaping blocked all vectors |
+| SF-2 | Brute-force login | DEFLECTED | Rate limiting (5/15min) + account lockout held |
+| SF-3 | Booking form data exfiltration | PARTIAL | Form POSTs to `/api/booking` but Worker has no handler — data silently lost. Same as #19 above. |
+| SF-4 | Content injection / stored XSS | DEFLECTED | Auth required + `ALLOWED_CONTENT_KEYS` allowlist + `esc()` output escaping |
+| SF-5 | Image upload exploitation | DEFLECTED | MIME allowlist (no SVG) + extension derived from MIME + path traversal blocked |
+| SF-6 | Token forgery | DEFLECTED | HMAC-SHA256 with separate TOKEN_SECRET; timing-safe comparison |
+| SF-7 | CORS bypass / cross-origin attack | DEFLECTED | Default-deny CORS + `Vary: Origin` |
+| SF-8 | KV quota exhaustion via login spam | PARTIAL | Separate RATE_LIMIT KV namespace mitigates; Cloudflare WAF would fully solve |
+| SF-9 | Login payload abuse | FIXED | Added 4KB payload limit on `/api/login` (defense-in-depth) |
+
+**What held strong:** CSP enforcement, token architecture (nonce + generation counter), rate limiting, upload security, content validation, CORS policy. The simulation validated these defenses under adversarial pressure.
 
 ---
 
@@ -100,6 +119,7 @@ Hosted on the client's own Cloudflare account (Pages + Worker + KV + R2).
 - **Storage:** Dedicated `RATE_LIMIT` KV namespace (falls back to `CONTENT` if binding not configured)
 - **IP source:** `CF-Connecting-IP` header (set by Cloudflare proxy, not spoofable)
 - **Lockout:** After 5 failures, returns 429 with remaining lockout time
+- **Payload limit:** 4KB on login request body (defense-in-depth)
 - **Clearance:** Successful login clears the rate-limit record for that IP
 
 ### Content Security Policy

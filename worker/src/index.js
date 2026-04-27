@@ -324,6 +324,12 @@ export default {
         );
       }
 
+      // Reject oversized login payloads (defense-in-depth)
+      const loginLength = parseInt(request.headers.get("Content-Length") || "0", 10);
+      if (loginLength > 4096) {
+        return errorResponse("Payload too large", 413, request, env);
+      }
+
       let password;
       try {
         const body = await request.json();
