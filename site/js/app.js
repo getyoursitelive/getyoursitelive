@@ -554,7 +554,8 @@ function renderContact(b, v) {
         </div>
         ${info.address ? `<div class="contact-info-item">
           <span class="contact-info-label">Address:</span>
-          <a href="https://maps.google.com/?q=${encodeURIComponent(info.address)}" target="_blank" rel="noopener" class="contact-info-value" ${E("businessInfo.address")}>${esc(info.address)}</a>
+          <span class="contact-info-value" ${E("businessInfo.address")}>${esc(info.address)}</span>
+          <a href="https://maps.google.com/?q=${encodeURIComponent(info.address)}" target="_blank" rel="noopener" class="contact-maps-link">Open in Google Maps</a>
         </div>` : ""}
       </div>`;
   }

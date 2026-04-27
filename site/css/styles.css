@@ -936,6 +936,8 @@ ul, ol { list-style: none; }
 .contact-info-label { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
 .contact-info-value { font-size: 0.95rem; font-weight: 500; color: var(--accent); text-decoration: none; }
 a.contact-info-value:hover { text-decoration: underline; }
+.contact-maps-link { font-size: 0.85rem; color: var(--accent); text-decoration: none; white-space: nowrap; }
+.contact-maps-link:hover { text-decoration: underline; }
 .contact-map { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); height: 100%; min-height: 18rem; }
 .contact-map-iframe { width: 100%; height: 100%; min-height: 18rem; border: 0; display: block; }
 .hours-list { }
