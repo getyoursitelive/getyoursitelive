@@ -67,7 +67,9 @@ function getCorsOrigin(request, env) {
     return "null";
   }
 
-  return origin === allowed ? allowed : "null";
+  // Support comma-separated origins (e.g. "https://seedreply.com,https://auto-repair.pages.dev")
+  const allowedList = allowed.split(",").map(s => s.trim());
+  return allowedList.includes(origin) ? origin : "null";
 }
 
 function corsHeaders(request, env) {
