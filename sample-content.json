@@ -139,9 +139,12 @@
     { "name": "Carlos R.", "context": "2017 Ford F-150", "quote": "Finally a mechanic I can trust. They didn't try to upsell me on anything I didn't need. Highly recommend." }
   ],
   "photos": [
-    { "id": "p1", "url": "https://images.pexels.com/photos/3807277/pexels-photo-3807277.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Engine diagnostics in progress" },
-    { "id": "p2", "url": "https://images.pexels.com/photos/4489713/pexels-photo-4489713.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Brake system repair" },
-    { "id": "p3", "url": "https://images.pexels.com/photos/2244746/pexels-photo-2244746.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Our service bay" }
+    { "id": "p1", "url": "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Engine diagnostics" },
+    { "id": "p2", "url": "https://images.pexels.com/photos/3642618/pexels-photo-3642618.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Brake inspection" },
+    { "id": "p3", "url": "https://images.pexels.com/photos/4489702/pexels-photo-4489702.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Under the hood" },
+    { "id": "p4", "url": "https://images.pexels.com/photos/4489767/pexels-photo-4489767.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Professional service" },
+    { "id": "p5", "url": "https://images.pexels.com/photos/3807277/pexels-photo-3807277.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Our shop" },
+    { "id": "p6", "url": "https://images.pexels.com/photos/3807386/pexels-photo-3807386.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Quality parts" }
   ],
   "hoursSchedule": {
     "mon": { "open": "08:00", "close": "18:00" },
@@ -159,9 +162,9 @@
     { "id": "f4", "question": "Do you offer loaner cars?", "answer": "Yes — call ahead and we'll arrange a loaner for longer repairs." }
   ],
   "emergency": {
-    "heading": "Car Won't Start? We're Here to Help.",
-    "description": "Call our emergency line for roadside assistance and towing coordination.",
-    "ctaLabel": "Call Emergency Line"
+    "heading": "Car Won't Start? We're Here for You.",
+    "description": "Emergency towing referrals and after-hours assistance available. Call us first.",
+    "ctaLabel": "Call Us Now"
   },
   "contact": {
     "heading": "Contact Us",
@@ -176,21 +179,21 @@
     "home": "Home",
     "about": "About",
     "services": "Services",
-    "technicians": "Team",
+    "technicians": "Technicians",
     "contact": "Contact"
   },
   "sectionTitles": {
     "services": "Our Services",
     "dealsEyebrow": "Current Specials",
     "deals": "Deals this month",
-    "dealsLede": "Limited-time offers.",
+    "dealsLede": "Limited-time offers on common repairs.",
     "pricing": "Transparent Pricing",
     "team": "Meet Our Technicians",
     "testimonials": "What Customers Say",
-    "faq": "Frequently Asked Questions",
+    "faq": "Common Questions",
     "photos": "Our Work",
     "dealsCta": "Claim this offer",
-    "pricingPopular": "Popular",
+    "pricingPopular": "Most Popular",
     "pricingRegular": "No surprises"
   },
   "visibility": {
@@ -210,7 +213,7 @@
     "showTestimonials": true,
     "showFaq": true,
     "showPhotos": true,
-    "showEmergencyBanner": true,
+    "showEmergencyBanner": false,
     "showBooking": true,
     "showContactInfo": true,
     "showHours": true,
