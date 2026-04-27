@@ -31,8 +31,9 @@ const LOCKOUT_WINDOW = 15 * 60; // 15 minutes in seconds (also KV TTL)
 // Content validation — only these top-level keys are accepted
 const ALLOWED_CONTENT_KEYS = new Set([
   "slug", "category", "theme", "businessInfo", "hero", "about", "stats",
-  "services", "deals", "pricing", "team", "testimonials", "faqs",
-  "emergency", "contact", "footer", "visibility", "sectionTitles", "navLabels"
+  "services", "deals", "pricing", "team", "testimonials", "photos", "faqs",
+  "emergency", "contact", "footer", "visibility", "sectionTitles", "navLabels",
+  "hoursSchedule"
 ]);
 
 // Upload MIME → extension mapping (derive ext from validated type, not user filename)

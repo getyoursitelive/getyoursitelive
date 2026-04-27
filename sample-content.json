@@ -138,6 +138,20 @@
     { "name": "Maria L.", "context": "2018 Honda CR-V", "quote": "Took my car in for a brake job. They showed me photos of the worn pads and explained everything. Fair price, great work." },
     { "name": "Carlos R.", "context": "2017 Ford F-150", "quote": "Finally a mechanic I can trust. They didn't try to upsell me on anything I didn't need. Highly recommend." }
   ],
+  "photos": [
+    { "id": "p1", "url": "https://images.pexels.com/photos/3807277/pexels-photo-3807277.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Engine diagnostics in progress" },
+    { "id": "p2", "url": "https://images.pexels.com/photos/4489713/pexels-photo-4489713.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Brake system repair" },
+    { "id": "p3", "url": "https://images.pexels.com/photos/2244746/pexels-photo-2244746.jpeg?auto=compress&cs=tinysrgb&w=800", "caption": "Our service bay" }
+  ],
+  "hoursSchedule": {
+    "mon": { "open": "08:00", "close": "18:00" },
+    "tue": { "open": "08:00", "close": "18:00" },
+    "wed": { "open": "08:00", "close": "18:00" },
+    "thu": { "open": "08:00", "close": "18:00" },
+    "fri": { "open": "08:00", "close": "18:00" },
+    "sat": { "open": "08:00", "close": "14:00" },
+    "sun": null
+  },
   "faqs": [
     { "id": "f1", "question": "How long does an oil change take?", "answer": "Most oil changes are done in 30–45 minutes. We'll text you when your car is ready." },
     { "id": "f2", "question": "Do I need an appointment?", "answer": "Walk-ins are welcome, but scheduling online ensures minimal wait time." },
@@ -171,12 +185,12 @@
     "deals": "Deals this month",
     "dealsLede": "Limited-time offers.",
     "pricing": "Transparent Pricing",
-    "team": "Meet Our Team",
+    "team": "Meet Our Technicians",
     "testimonials": "What Customers Say",
-    "faq": "Common Questions",
+    "faq": "Frequently Asked Questions",
     "photos": "Our Work",
     "dealsCta": "Claim this offer",
-    "pricingPopular": "Most Popular",
+    "pricingPopular": "Popular",
     "pricingRegular": "No surprises"
   },
   "visibility": {
@@ -195,6 +209,7 @@
     "showTeam": true,
     "showTestimonials": true,
     "showFaq": true,
+    "showPhotos": true,
     "showEmergencyBanner": true,
     "showBooking": true,
     "showContactInfo": true,

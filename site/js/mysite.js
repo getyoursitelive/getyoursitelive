@@ -24,6 +24,7 @@ const TABS = [
   { id: "team", label: "Team" },
   { id: "testimonials", label: "Testimonials" },
   { id: "faq", label: "FAQ" },
+  { id: "photos", label: "Photos" },
   { id: "contact", label: "Contact & Hours" },
   { id: "visibility", label: "Visibility" },
 ];
@@ -109,6 +110,7 @@ function renderTab() {
     case "team": content.innerHTML = renderTeamTab(); break;
     case "testimonials": content.innerHTML = renderTestimonialsTab(); break;
     case "faq": content.innerHTML = renderFaqTab(); break;
+    case "photos": content.innerHTML = renderPhotosTab(); break;
     case "contact": content.innerHTML = renderContactTab(); break;
     case "visibility": content.innerHTML = renderVisibilityTab(); break;
   }
@@ -329,7 +331,32 @@ function renderFaqTab() {
     <button class="admin-btn-add" onclick="addFaq()">+ Add FAQ</button>`;
 }
 
+function renderPhotosTab() {
+  const photos = BUSINESS.photos || [];
+  return `
+    <h2>Photos</h2>
+    <p style="color:var(--text-secondary);margin-bottom:1rem">Add photos of your work. Each photo needs an image URL and optional caption.</p>
+    ${photos.map((p, i) => `
+      <div class="admin-card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Photo ${i + 1}</strong>
+          <button class="admin-btn admin-btn-danger" onclick="removePhoto(${i})">Remove</button>
+        </div>
+        <div class="admin-field"><label>Image URL</label><input type="text" value="${esc(p.url || "")}" data-photo="${i}" data-key="url"></div>
+        <div class="admin-field"><label>Caption</label><input type="text" value="${esc(p.caption || "")}" data-photo="${i}" data-key="caption"></div>
+      </div>`).join("")}
+    <button class="admin-btn" onclick="addPhoto()">+ Add Photo</button>`;
+}
+
 function renderContactTab() {
+  const DAYS = [
+    { key: "mon", label: "Monday" }, { key: "tue", label: "Tuesday" },
+    { key: "wed", label: "Wednesday" }, { key: "thu", label: "Thursday" },
+    { key: "fri", label: "Friday" }, { key: "sat", label: "Saturday" },
+    { key: "sun", label: "Sunday" }
+  ];
+  const schedule = BUSINESS.hoursSchedule || {};
+
   return `
     <h2>Contact & Hours</h2>
     ${field("Heading", "contact.heading")}
@@ -337,6 +364,20 @@ function renderContactTab() {
     ${field("Phone", "businessInfo.phone")}
     ${field("Email", "businessInfo.email")}
     ${field("Address", "businessInfo.address")}
+    <h3 style="margin-top:1.5rem;margin-bottom:0.75rem">Business Hours</h3>
+    ${DAYS.map(d => {
+      const entry = schedule[d.key];
+      const closed = !entry;
+      return `
+        <div class="admin-hours-row" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
+          <span style="width:6rem;font-weight:500">${d.label}</span>
+          <label style="display:flex;align-items:center;gap:0.25rem"><input type="checkbox" data-hours-closed="${d.key}" ${closed ? "checked" : ""}> Closed</label>
+          <input type="time" value="${esc(entry?.open || "08:00")}" data-hours-open="${d.key}" ${closed ? "disabled" : ""} style="padding:0.25rem 0.5rem;border:1px solid var(--border);border-radius:4px">
+          <span>to</span>
+          <input type="time" value="${esc(entry?.close || "17:00")}" data-hours-close="${d.key}" ${closed ? "disabled" : ""} style="padding:0.25rem 0.5rem;border:1px solid var(--border);border-radius:4px">
+        </div>`;
+    }).join("")}
+    <hr style="margin:1.5rem 0">
     ${field("Footer Location Label", "footer.locationLabel")}
     ${field("Footer Phone Label", "footer.phoneLabel")}
     ${field("Copyright Suffix", "footer.copyrightSuffix")}`;
@@ -360,6 +401,7 @@ function renderVisibilityTab() {
     ["showTeam", "Team"],
     ["showTestimonials", "Testimonials"],
     ["showFaq", "FAQ"],
+    ["showPhotos", "Photos Gallery"],
     ["showEmergencyBanner", "Emergency Banner"],
     ["showBooking", "Booking Form"],
     ["showContactInfo", "Contact Info"],
@@ -477,6 +519,44 @@ function attachTabHandlers() {
     });
   });
 
+  // Photos
+  document.querySelectorAll("[data-photo]").forEach(el => {
+    el.addEventListener("input", () => {
+      const i = parseInt(el.dataset.photo);
+      if (BUSINESS.photos && BUSINESS.photos[i]) BUSINESS.photos[i][el.dataset.key] = el.value;
+    });
+  });
+
+  // Hours schedule
+  document.querySelectorAll("[data-hours-closed]").forEach(el => {
+    el.addEventListener("change", () => {
+      const day = el.dataset.hoursClosed;
+      if (!BUSINESS.hoursSchedule) BUSINESS.hoursSchedule = {};
+      if (el.checked) {
+        BUSINESS.hoursSchedule[day] = null;
+      } else {
+        BUSINESS.hoursSchedule[day] = { open: "08:00", close: "17:00" };
+      }
+      renderTab();
+    });
+  });
+  document.querySelectorAll("[data-hours-open]").forEach(el => {
+    el.addEventListener("input", () => {
+      const day = el.dataset.hoursOpen;
+      if (!BUSINESS.hoursSchedule) BUSINESS.hoursSchedule = {};
+      if (!BUSINESS.hoursSchedule[day]) BUSINESS.hoursSchedule[day] = { open: "08:00", close: "17:00" };
+      BUSINESS.hoursSchedule[day].open = el.value;
+    });
+  });
+  document.querySelectorAll("[data-hours-close]").forEach(el => {
+    el.addEventListener("input", () => {
+      const day = el.dataset.hoursClose;
+      if (!BUSINESS.hoursSchedule) BUSINESS.hoursSchedule = {};
+      if (!BUSINESS.hoursSchedule[day]) BUSINESS.hoursSchedule[day] = { open: "08:00", close: "17:00" };
+      BUSINESS.hoursSchedule[day].close = el.value;
+    });
+  });
+
   // Visibility
   document.querySelectorAll("[data-visibility]").forEach(el => {
     el.addEventListener("change", () => {
@@ -526,6 +606,9 @@ window.removeTestimonial = (i) => { BUSINESS.testimonials.splice(i, 1); renderTa
 
 window.addFaq = () => { (BUSINESS.faqs = BUSINESS.faqs || []).push({ id: `faq-${Date.now()}`, question: "New Question?", answer: "Answer here." }); renderTab(); };
 window.removeFaq = (i) => { BUSINESS.faqs.splice(i, 1); renderTab(); };
+
+window.addPhoto = () => { (BUSINESS.photos = BUSINESS.photos || []).push({ id: `photo-${Date.now()}`, url: "", caption: "" }); renderTab(); };
+window.removePhoto = (i) => { BUSINESS.photos.splice(i, 1); renderTab(); };
 
 // ─── Save ────────────────────────────────────────────────────────────
 

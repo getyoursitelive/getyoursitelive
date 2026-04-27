@@ -65,6 +65,7 @@ function renderSite() {
   html += renderPricing(b, v);
   html += renderTeam(b, v);
   html += renderTestimonials(b, v);
+  html += renderPhotos(b, v);
   html += renderFaq(b, v);
   html += renderEmergency(b, v);
   html += renderContact(b, v);
@@ -343,7 +344,7 @@ function renderTeam(b, v) {
               <div class="team-info">
                 <p class="team-name" ${E("team." + i + ".name")}>${esc(m.name)}</p>
                 <p class="team-role" ${E("team." + i + ".role")}>${esc(m.role)}</p>
-                <p class="team-experience" ${E("team." + i + ".experience")}>${esc(m.experience)}</p>
+                <p class="team-experience"><span ${E("team." + i + ".experience")}>${esc(m.experience)}</span>${m.specialty ? ` - <span ${E("team." + i + ".specialty")}>${esc(m.specialty)}</span>` : ""}</p>
               </div>
             </div>`).join("")}
         </div>
@@ -375,6 +376,30 @@ function renderTestimonials(b, v) {
               <button class="testimonial-nav-btn" id="testimonialPrev">${chevronLeft}</button>
               <button class="testimonial-nav-btn" id="testimonialNext">${chevronRight}</button>
             </div>` : ""}
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderPhotos(b, v) {
+  if (v.showPhotos === false) return "";
+  const photos = b.photos;
+  if (!photos || photos.length === 0) return "";
+  const titles = b.sectionTitles || {};
+
+  return `
+    <section class="photos-section" data-visibility="showPhotos">
+      <div class="photos-inner">
+        <p class="section-eyebrow">Gallery</p>
+        <h2 class="section-title" ${E("sectionTitles.photos")}>${esc(titles.photos || "Our Work")}</h2>
+        <div class="photos-grid" data-edit-list="photos" data-list-template='{"id":"photo-new","url":"","caption":"New photo"}'>
+          ${photos.map((p, i) => `
+            <div class="photo-card">
+              ${p.url
+                ? `<img src="${esc(p.url)}" alt="${esc(p.caption || "")}" class="photo-card-image" loading="lazy" ${EI("photos." + i + ".url")}>`
+                : `<div class="photo-card-image photo-card-placeholder" ${EI("photos." + i + ".url")}></div>`}
+              ${p.caption ? `<p class="photo-card-caption" ${E("photos." + i + ".caption")}>${esc(p.caption)}</p>` : ""}
+            </div>`).join("")}
         </div>
       </div>
     </section>`;
@@ -416,31 +441,91 @@ function renderEmergency(b, v) {
     </section>`;
 }
 
+function formatHoursLong(schedule) {
+  if (!schedule) return [];
+  const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const NAMES = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
+
+  function fmt(t) {
+    if (!t) return "";
+    const [h, m] = t.split(":").map(Number);
+    const suffix = h >= 12 ? "PM" : "AM";
+    const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return m === 0 ? `${hour} ${suffix}` : `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+  }
+
+  const ranges = [];
+  let i = 0;
+  while (i < DAYS.length) {
+    const day = DAYS[i];
+    const entry = schedule[day];
+    const key = entry ? `${entry.open}-${entry.close}` : "closed";
+    let end = i;
+    while (end + 1 < DAYS.length) {
+      const next = schedule[DAYS[end + 1]];
+      const nextKey = next ? `${next.open}-${next.close}` : "closed";
+      if (nextKey !== key) break;
+      end++;
+    }
+    const startName = NAMES[DAYS[i]];
+    const endName = NAMES[DAYS[end]];
+    const label = i === end ? startName : `${startName}–${endName}`;
+    const hours = entry ? `${fmt(entry.open)} – ${fmt(entry.close)}` : "Closed";
+    ranges.push({ label, hours });
+    i = end + 1;
+  }
+  return ranges;
+}
+
 function renderContact(b, v) {
   if (v.showBooking === false) return "";
   const c = b.contact || {};
   const info = b.businessInfo || {};
   const email = info.email || "info@" + (typeof location !== "undefined" ? location.hostname : "example.com");
 
+  let mapHtml = "";
+  if (v.showMap !== false && info.address) {
+    const mapsEmbed = `https://maps.google.com/maps?q=${encodeURIComponent(info.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+    mapHtml = `<div class="contact-map" data-visibility="showMap"><iframe src="${esc(mapsEmbed)}" class="contact-map-iframe" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>`;
+  }
+
+  let hoursHtml = "";
+  if (v.showHours !== false && b.hoursSchedule) {
+    const ranges = formatHoursLong(b.hoursSchedule);
+    hoursHtml = `
+      <div class="hours-list" data-visibility="showHours">
+        <h3 class="hours-heading">Hours</h3>
+        ${ranges.map(r => `<div class="hours-row"><span class="hours-day">${esc(r.label)}</span><span class="hours-time">${esc(r.hours)}</span></div>`).join("")}
+      </div>`;
+  }
+
+  let contactInfoHtml = "";
+  if (v.showContactInfo !== false) {
+    contactInfoHtml = `
+      <div class="contact-info-box" data-visibility="showContactInfo">
+        <div class="contact-info-item">
+          <span class="contact-info-label">Phone</span>
+          <a href="tel:${esc(info.phone || "")}" class="contact-info-value" ${E("businessInfo.phone")}>${esc(info.phone || "")}</a>
+        </div>
+        <div class="contact-info-item">
+          <span class="contact-info-label">Email</span>
+          <a href="mailto:${esc(email)}" class="contact-info-value" ${E("businessInfo.email")}>${esc(email)}</a>
+        </div>
+        ${info.address ? `<div class="contact-info-item">
+          <span class="contact-info-label">Address</span>
+          <span class="contact-info-value" ${E("businessInfo.address")}>${esc(info.address)}</span>
+        </div>` : ""}
+      </div>`;
+  }
+
   return `
     <section id="contact" class="contact-section" data-visibility="showBooking">
       <div class="contact-inner">
         <h2 class="section-title" ${E("contact.heading")}>${esc(c.heading || "Contact Us")}</h2>
         <p class="contact-desc" style="color:var(--text-secondary);margin-top:0.5rem" ${E("contact.description")}>${esc(c.description || "Get in touch — we'd love to hear from you.")}</p>
-        <div class="contact-info-box">
-          <div class="contact-info-item">
-            <span class="contact-info-label">Phone</span>
-            <a href="tel:${esc(info.phone || "")}" class="contact-info-value" ${E("businessInfo.phone")}>${esc(info.phone || "")}</a>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-label">Email</span>
-            <a href="mailto:${esc(email)}" class="contact-info-value" ${E("businessInfo.email")}>${esc(email)}</a>
-          </div>
-          ${info.address ? `<div class="contact-info-item">
-            <span class="contact-info-label">Address</span>
-            <span class="contact-info-value" ${E("businessInfo.address")}>${esc(info.address)}</span>
-          </div>` : ""}
-        </div>
+        ${mapHtml}
+        ${contactInfoHtml}
+        ${hoursHtml}
       </div>
     </section>`;
 }
