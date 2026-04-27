@@ -71,6 +71,13 @@ function renderSite() {
   html += renderContact(b, v);
   html += renderFooter(b);
   html += '<button class="back-to-top hidden" id="backToTop" onclick="window.scrollTo({top:0})">↑</button>';
+  html += `<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <button class="lightbox-prev" id="lightboxPrev">&#8249;</button>
+    <button class="lightbox-next" id="lightboxNext">&#8250;</button>
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <p class="lightbox-caption" id="lightboxCaption"></p>
+  </div>`;
 
   app.innerHTML = html;
   initInteractions();
@@ -394,7 +401,7 @@ function renderPhotos(b, v) {
         <h2 class="section-title" ${E("sectionTitles.photos")}>${esc(titles.photos || "Our Work")}</h2>
         <div class="photos-grid" data-edit-list="photos" data-list-template='{"id":"photo-new","url":"","caption":"New photo"}'>
           ${photos.map((p, i) => `
-            <div class="photo-card">
+            <div class="photo-card" data-photo-idx="${i}">
               ${p.url
                 ? `<img src="${esc(p.url)}" alt="${esc(p.caption || "")}" class="photo-card-image" loading="lazy" ${EI("photos." + i + ".url")}>`
                 : `<div class="photo-card-image photo-card-placeholder" ${EI("photos." + i + ".url")}></div>`}
@@ -687,6 +694,50 @@ function initInteractions() {
     if (det) det.innerHTML = "&middot; " + esc(status.detail);
   }
   setInterval(refreshOpenStatus, 60000);
+
+  // Photo lightbox
+  const photos = BUSINESS.photos || [];
+  if (photos.length > 0) {
+    const lightbox = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightboxImg");
+    const lbCaption = document.getElementById("lightboxCaption");
+    let lbIdx = 0;
+
+    function showLightbox(idx) {
+      lbIdx = idx;
+      const p = photos[idx];
+      if (!p || !p.url) return;
+      lbImg.src = p.url;
+      lbImg.alt = p.caption || "";
+      lbCaption.textContent = p.caption || "";
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    document.querySelectorAll("[data-photo-idx]").forEach(card => {
+      card.style.cursor = "pointer";
+      card.addEventListener("click", (e) => {
+        if (document.getElementById("app")?.classList.contains("edit-mode")) return;
+        showLightbox(parseInt(card.dataset.photoIdx));
+      });
+    });
+
+    document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLightbox(); });
+    document.getElementById("lightboxPrev").addEventListener("click", (e) => { e.stopPropagation(); showLightbox((lbIdx - 1 + photos.length) % photos.length); });
+    document.getElementById("lightboxNext").addEventListener("click", (e) => { e.stopPropagation(); showLightbox((lbIdx + 1) % photos.length); });
+    document.addEventListener("keydown", (e) => {
+      if (!lightbox.classList.contains("active")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") showLightbox((lbIdx - 1 + photos.length) % photos.length);
+      if (e.key === "ArrowRight") showLightbox((lbIdx + 1) % photos.length);
+    });
+  }
 
   // Stats counter animation (skip in edit mode — animation overwrites contenteditable)
   const statsSection = document.getElementById("stats");

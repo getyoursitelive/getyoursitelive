@@ -846,6 +846,19 @@ ul, ol { list-style: none; }
   font-size: 0.875rem;
   color: var(--text-secondary);
 }
+.photo-card:hover .photo-card-image { opacity: 0.85; transition: opacity 0.2s; }
+
+/* Lightbox */
+.lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; flex-direction: column; }
+.lightbox.active { display: flex; }
+.lightbox-img { max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 0.5rem; }
+.lightbox-caption { color: #fff; font-size: 0.95rem; margin-top: 1rem; text-align: center; max-width: 90vw; }
+.lightbox-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #fff; font-size: 2.5rem; cursor: pointer; line-height: 1; z-index: 1; }
+.lightbox-close:hover { color: #ccc; }
+.lightbox-prev, .lightbox-next { position: absolute; top: 50%; transform: translateY(-50%); background: none; border: none; color: #fff; font-size: 3rem; cursor: pointer; padding: 0.5rem; line-height: 1; z-index: 1; }
+.lightbox-prev { left: 1rem; }
+.lightbox-next { right: 1rem; }
+.lightbox-prev:hover, .lightbox-next:hover { color: #ccc; }
 
 /* ==================================================================
    FAQ
